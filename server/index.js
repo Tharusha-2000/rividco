@@ -18,8 +18,16 @@ connectDB();
 
 
 // Middleware
+const allowedOrigins = ["https://rividco-admin-frontend.vercel.app", "http://localhost:3000"];
+
 app.use(cors({
-  origin: ["https://localhost:3000"], 
+  origin: function (origin, callback) {
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
 }));
