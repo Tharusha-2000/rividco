@@ -6,6 +6,8 @@ const mailer = require('../authcontrol/mailer');
 const Service = require('../models/Service'); // Import the Service model
 const Projects = require('../models/Projects'); // Import the Projects model
 const Employees = require('../models/Employees'); // Import the Employees model
+const Testimonial = require('../models/Testimonial'); // Import the Testimonial model
+
 const bcrypt = require("bcryptjs");
 const Users = require("../models/Users");
 
@@ -232,6 +234,68 @@ router.get("/summary", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+/*..........................................testimonials .................................................... */
+
+// Create Testimonial
+router.post('/testimonials', async (req, res) => {
+  try {
+    const { name, profession, text, image } = req.body;
+    const newTestimonial = new Testimonial({ name, profession, text, image });
+    await newTestimonial.save();
+    res.status(201).json({ msg: 'Testimonial created successfully', success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Get All Testimonials
+router.get('/testimonials', async (req, res) => {
+  try {
+    const testimonials = await Testimonial.find();
+    res.status(200).json(testimonials);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Update Testimonial
+router.put('/testimonials/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, profession, text, image } = req.body;
+    const updatedTestimonial = await Testimonial.findByIdAndUpdate(
+      id,
+      { name, profession, text, image },
+      { new: true }
+    );
+    if (!updatedTestimonial) {
+      return res.status(404).json({ error: 'Testimonial not found' });
+    }
+    res.status(200).json({ msg: 'Testimonial updated successfully', success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Delete Testimonial
+router.delete('/testimonials/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedTestimonial = await Testimonial.findByIdAndDelete(id);
+    if (!deletedTestimonial) {
+      return res.status(404).json({ error: 'Testimonial not found' });
+    }
+    res.status(200).json({ msg: 'Testimonial deleted successfully', success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
 
