@@ -6,7 +6,8 @@ const mailer = require('../authcontrol/mailer');
 const Service = require('../models/Service'); // Import the Service model
 const Projects = require('../models/Projects'); // Import the Projects model
 const Employees = require('../models/Employees'); // Import the Employees model
-
+const bcrypt = require("bcryptjs");
+const Users = require("../models/Users");
 
 const  subscribeToNewsletter  = require("../utils/mailchimp");
 
@@ -233,6 +234,46 @@ router.get("/summary", async (req, res) => {
 });
 
 
+
+
+/*..........................................login .................................................... */
+
+//register
+router.post("/register", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new Users({ email, password: hashedPassword });
+    await newUser.save();
+    res.status(201).json({ success: true, message: "User registered successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+// Login Route
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    }
+
+    res.status(200).json({ success: true, message: "Login successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
 
 
 
