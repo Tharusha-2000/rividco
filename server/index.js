@@ -18,7 +18,7 @@ connectDB();
 
 
 // Middleware
-const allowedOrigins = ["https://rividco-admin-frontend.vercel.app", "http://localhost:3000"];
+const allowedOrigins = ["https://rividco-admin-frontend.vercel.app", "https://rividco.netlify.app"];
 
 app.use(cors({
   origin: function (origin, callback) {
