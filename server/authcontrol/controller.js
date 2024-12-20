@@ -1,21 +1,38 @@
 
 const bcrypt = require("bcryptjs");
 const Contact = require("../models/Contact.js");
+const QuotationRequest = require("../models/QuotationRequest.js");
+
 
 //register user
 exports.GetAFreeQuoteSection = async (req, res, next) => {
   try {
     const { name, email, mobile, service, note } = req.body;
 
-    // Here, you would handle the data (e.g., save it to a database)
-    console.log('Quote request received:', { name, email, mobile, service, note });
-     res.locals.userData = { name, email, mobile, service, note };
-     
+    if (!name || !email || !mobile || !service) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    // Save the quotation request to the database
+    const newQuotation = new QuotationRequest({
+      name,
+      email,
+      mobile,
+      service,
+      note,
+    });
+    await newQuotation.save();
+
+    console.log("Quotation request saved:", newQuotation);
+
+    res.locals.userData = { name, email, mobile, service, note };
     next();
   } catch (error) {
-    console.error(error);
+    console.error("Error saving quotation request:", error);
+    res.status(500).json({ success: false, message: "An error occurred. Please try again later." });
   }
 };
+
 
 
 

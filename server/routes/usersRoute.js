@@ -7,6 +7,9 @@ const Service = require('../models/Service'); // Import the Service model
 const Projects = require('../models/Projects'); // Import the Projects model
 const Employees = require('../models/Employees'); // Import the Employees model
 const Testimonial = require('../models/Testimonial'); // Import the Testimonial model
+const Contact = require('../models/Contact');
+const QuotationRequest = require("../models/QuotationRequest.js");
+
 
 const bcrypt = require("bcryptjs");
 const Users = require("../models/Users");
@@ -36,9 +39,153 @@ router.post("/newsletter/subscribe", async (req, res) => {
   }
 });
 /*..........................................registration.................................................... */
-router.post("/contact/send",controller.handleContactFormSubmission,mailer.sendContactEmail);
+
 
 router.post("/quote",controller.GetAFreeQuoteSection,mailer.sendWelcomeEmail);
+
+// Flag a specific quotation request
+
+router.get("/quote", async (req, res) => {
+  try {
+    const quotes = await QuotationRequest.find({ flagged: false }).sort({ createdAt: -1 });
+    res.status(200).json(quotes);
+  } catch (error) {
+    console.error("Error fetching quotes:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/quote/flagged", async (req, res) => {
+  try {
+    const flaggedQuotes = await QuotationRequest.find({ flagged: true }).sort({ createdAt: -1 });
+    res.status(200).json(flaggedQuotes);
+  } catch (error) {
+    console.error("Error fetching flagged quotes:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.put("/quote/:id/flag", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedQuote = await QuotationRequest.findByIdAndUpdate(
+      id,
+      { flagged: true }, // Mark as flagged
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedQuote) {
+      return res.status(404).json({ error: "Quote request not found" });
+    }
+
+    res.status(200).json({ message: "Quote request flagged successfully", data: updatedQuote });
+  } catch (error) {
+    console.error("Error flagging quote request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+router.put("/quote/:id/status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    const validStatuses = ["pending", "ongoing", "completed"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status value" });
+    }
+
+    const updatedQuote = await QuotationRequest.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedQuote) {
+      return res.status(404).json({ error: "Quote request not found" });
+    }
+
+    res.status(200).json({ message: "Status updated successfully", data: updatedQuote });
+  } catch (error) {
+    console.error("Error updating quote status:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
+
+
+/*..........................................contact requests.................................................... */
+
+router.post("/contact/send",controller.handleContactFormSubmission,mailer.sendContactEmail);
+
+// Route to get all unflagged contact requests
+router.get('/contacts', async (req, res) => {
+  try {
+    const contacts = await Contact.find({ flagged: false }); // Exclude flagged contacts
+    res.status(200).json(contacts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Route to flag a contact request as deleted
+router.delete('/contacts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const flaggedContact = await Contact.findByIdAndUpdate(
+      id,
+      { flagged: true }, // Flag the contact instead of deleting
+      { new: true }
+    );
+
+    if (!flaggedContact) {
+      return res.status(404).json({ error: 'Contact request not found' });
+    }
+
+    res.status(200).json({ msg: 'Contact request flagged successfully', success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+// Route to update the status of a contact request
+router.put('/contacts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['pending', 'ongoing', 'complete'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
+    const updatedContact = await Contact.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedContact) {
+      return res.status(404).json({ error: 'Contact request not found' });
+    }
+
+    res.status(200).json({ msg: 'Contact request updated successfully', success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
 
 /*..........................................services .................................................... */
 
