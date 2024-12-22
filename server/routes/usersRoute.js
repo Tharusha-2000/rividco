@@ -19,23 +19,48 @@ const  subscribeToNewsletter  = require("../utils/mailchimp");
 
 
 // POST /api/subscribe
+// router.post("/newsletter/subscribe", async (req, res) => {
+//   const { email } = req.body;
+
+//   if (!email) {
+//     return res.status(400).json({ message: "Email is required" });
+//   }
+
+//   try {
+//     const result = await subscribeToNewsletter(email);
+//     if (result.success) {
+//       res.status(200).json({ message: "Subscription successful!", data: result.data });
+//     } else {
+//       res.status(400).json({ message: result.message });
+//     }
+//   } catch (error) {
+//     console.error("Subscription Error:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+
 router.post("/newsletter/subscribe", async (req, res) => {
   const { email } = req.body;
 
   if (!email) {
-    return res.status(400).json({ message: "Email is required" });
+    return res.status(400).json({ success: false, message: "Email is required" });
   }
 
   try {
-    const result = await subscribeToNewsletter(email);
-    if (result.success) {
-      res.status(200).json({ message: "Subscription successful!", data: result.data });
-    } else {
-      res.status(400).json({ message: result.message });
+    // Add your logic here to save the email to the database or newsletter system
+    console.log("Subscribed email:", email);
+
+    // Send the welcome email
+    const emailSent = await mailer.sendSubscriberWelcomeEmail(email);
+    if (!emailSent) {
+      return res.status(500).json({ success: false, message: "Failed to send welcome email" });
     }
+
+    res.status(200).json({ success: true, message: "Subscription successful, welcome email sent!" });
   } catch (error) {
-    console.error("Subscription Error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error during subscription:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 /*..........................................registration.................................................... */

@@ -1,6 +1,14 @@
 var nodemailer = require('nodemailer');
 const otpGenerator = require("otp-generator");
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.Email, // Your email address from the environment variables
+    pass: process.env.Password, // Your email password or app-specific password
+  },
+});
+
 
 exports.sendWelcomeEmail = (req, res) => {
   
@@ -105,5 +113,29 @@ exports.sendContactEmail = (req, res) => {
   };
 
 
+  exports.sendSubscriberWelcomeEmail = async (email) => {
+    const mailOptions = {
+      from: process.env.Email,
+      to: email,
+      subject: "Welcome to Our Newsletter!",
+      html: `
+        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
+          <h2 style="color: #333;">Welcome to Our Newsletter!</h2>
+          <p style="color: #555;">Thank you for subscribing to our newsletter. We're excited to have you on board.</p>
+          <p style="color: #555;">Stay tuned for updates, exclusive offers, and much more!</p>
+          <p style="color: #555;">If you have any questions, feel free to contact us at <a href="mailto:${process.env.Email}">${process.env.Email}</a>.</p>
+        </div>
+      `,
+    };
+  
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log("Welcome email sent:", info.response);
+      return true;
+    } catch (error) {
+      console.error("Error sending welcome email:", error);
+      return false;
+    }
+  };
 
 
