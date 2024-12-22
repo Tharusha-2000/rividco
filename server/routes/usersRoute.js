@@ -51,18 +51,29 @@ router.post("/newsletter/subscribe", async (req, res) => {
     // Add your logic here to save the email to the database or newsletter system
     console.log("Subscribed email:", email);
 
+    const result = await subscribeToNewsletter(email);
+    if (!result.success) {
+      return res.status(400).json({ success: false, message: result.message });
+    }
+
     // Send the welcome email
     const emailSent = await mailer.sendSubscriberWelcomeEmail(email);
     if (!emailSent) {
       return res.status(500).json({ success: false, message: "Failed to send welcome email" });
     }
 
-    res.status(200).json({ success: true, message: "Subscription successful, welcome email sent!" });
+    // Send final success response
+    return res.status(200).json({
+      success: true,
+      message: "Subscription successful, welcome email sent!",
+      data: result.data,
+    });
   } catch (error) {
     console.error("Error during subscription:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
 /*..........................................registration.................................................... */
 
 
